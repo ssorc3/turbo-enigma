@@ -1,0 +1,19 @@
+var policy_gen = require('s3-post-policy')
+
+var policy = policy_gen({
+    id: "AKIAJD7BDYVQ766LKN4A",
+    secret: "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",
+    date: Date.now(),
+    region: "eu-west-1",
+    bucket: "imagestoragebucket-website-dev",
+    policy: {
+        expiration: Date.now() + (1000 * 60 * 60 * 24 * 30),
+        conditions: [
+            {"acl": "public-read"},
+            ["starts-with","$Content-Type","image/jpeg"],
+            ["starts-with","$key", "images/before/"],
+            {"x-amz-meta-uuid": "14365123651274"},
+            {"success_action_redirect": "http://imageprocessingwebsitebucket-website-dev.s3-website-eu-west-1.amazonaws.com/success.html"}
+        ]
+    }
+})

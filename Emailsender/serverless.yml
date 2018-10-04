@@ -1,0 +1,26 @@
+service: EmailSender
+
+provider:
+  name: aws
+  runtime: dotnetcore2.1
+  region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+      Resource:
+        "*"
+
+
+package:
+  artifact: bin/release/netcoreapp2.1/deploy-package.zip
+
+functions:
+  sendEmail:
+    handler: CsharpHandlers::AwsDotnetCsharp.Handler::SendEmail
+    events:
+      - sns: ${cf:imageeditor-dev.FinishedTopic}
+    environment:
+      fromEmail: "ssorc3@gmail.com"
+      region: ${self:provider.region}
+      bucketName: ${cf:imageinput-dev.S3BucketImageinputdev}

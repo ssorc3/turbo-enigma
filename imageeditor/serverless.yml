@@ -1,0 +1,55 @@
+service: imageeditor
+
+package:
+  artifact: bin/release/netcoreapp2.1/deploy-package.zip
+
+custom:
+  TopicName: FinishedTopic
+
+provider:
+  name: aws
+  runtime: dotnetcore2.1
+  stage: dev
+  region: eu-west-1
+  environment:
+    bucketName: ${cf:imageinput-dev.S3BucketImageinputdev}
+    region: ${self:provider.region}
+    fromEmail: ssorc3@gmail.com
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:Get*
+        - s3:Put*
+      Resource: 
+        arn:aws:s3:::${cf:imageinput-dev.S3BucketImageinputdev}/*
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        - Ref: FinishedTopic
+
+functions:
+  handle:
+    handler: CsharpHandlers::AwsDotnetCsharp.Handler::Handle
+    events:
+      - sns: ${cf:imageinput-dev.NotifyTopic}
+    timeout: 60
+    environment:
+      SNS_ARN:
+        "Ref": FinishedTopic
+
+resources:
+  Resources:
+    FinishedTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:custom.TopicName}
+  Outputs:
+    FinishedTopic:
+      Value:
+        "Ref": FinishedTopic
+      Export:
+        Name: FinishedTopic
+
+plugins:
+  - serverless-pseudo-parameters

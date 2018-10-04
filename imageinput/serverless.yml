@@ -1,0 +1,58 @@
+service: imageinput 
+
+custom:
+  bucketName: ${self:service}-${self:provider.stage}-#{AWS::AccountId}
+  topicName: imageInputTopic
+
+package:
+  artifact: bin/release/netcoreapp2.1/deploy-package.zip
+
+provider:
+  name: aws
+  runtime: dotnetcore2.1
+  region: eu-west-1
+  stage: dev
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        - Ref: NotifyTopic
+
+functions:
+  hello:
+    handler: CsharpHandlers::AwsDotnetCsharp.Handler::Handle
+    memorySize: 128
+    timeout: 60
+    events:
+      - s3: 
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: images/before/
+            - suffix: .png
+      
+    environment:
+      SNS_ARN: 
+        Ref: NotifyTopic
+
+resources:
+  Resources:
+    NotifyTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:custom.topicName}
+  Outputs:
+    S3BucketImageinputdev:
+      Value:
+        "Ref": S3BucketImageinputdevAWSAccountId
+      Export:
+        Name: S3BucketImageinputdevAWSAccountId
+    NotifyTopic:
+      Value:
+        "Ref": NotifyTopic
+      Export:
+        Name: NotifyTopic
+
+plugins:
+  - serverless-pseudo-parameters

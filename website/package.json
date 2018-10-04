@@ -1,0 +1,12 @@
+{
+  "name": "website",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {
+    "s3-post-policy": "^2.3.0"
+  },
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^2.2.0",
+    "serverless-s3-sync": "^1.7.0"
+  }
+}

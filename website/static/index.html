@@ -1,0 +1,51 @@
+<html>
+
+<head>
+  <title>Image editor</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      File.prototype.convertToBase64 = function (callback) {
+        var reader = new FileReader();
+        reader.onloadend = function (e) {
+          callback(e.target.result, e.target.error);
+        };
+        reader.readAsDataURL(this);
+      };
+
+      $('#myForm')
+        .submit(function (e) {
+          $('#file')[0].files[0].convertToBase64(function (base64) {
+            $.ajax({
+              url: 'https://uxe2d1hg2a.execute-api.eu-west-1.amazonaws.com/dev/upload?email=' + $('#email')[0].value,
+              type: 'POST',
+              data: base64,
+              success: function(data){
+                if(data.message == "Upload Successful")
+                {
+                  window.location.replace("/successful.html");
+                }
+                else
+                {
+                  window.location.replace("/unsuccessful.html");
+                }
+              }
+            });
+          });
+          e.preventDefault();
+        });
+    });
+  </script>
+</head>
+
+<body>
+  <form id="myForm" action="" method="post" enctype="multipart/form-data">
+    Email:
+    <input id="email" type="email" name="email" />
+    <br/> File:
+    <input id="file" type="file" name="file" accept="image/png" />
+    <br />
+    <input type="submit" name="submit" value="Upload to Amazon S3" />
+  </form>
+
+</html>
